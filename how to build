@@ -1,0 +1,44 @@
+# pre
+sudo apt-get install python-pip
+sudo apt-get install zlib1g-dev
+
+
+# pylink to be gitted
+
+sudo pip install future
+
+sudo apt-get install libxml2-dev libxslt-dev python-dev
+
+sudo pip2 install -U future lxml
+
+sudo pip2 install -U pymavlink
+
+Be sure that make in the ardupilot
+
+# Cross-compiler setup on Linux (optional)
+
+sudo git clone --depth 1 https://github.com/raspberrypi/tools.git /opt/tools
+
+export PATH=/opt/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin:$PATH
+
+# Start compliling
+
+git clone https://github.com/ArduPilot/ardupilot.git
+cd ardupilot
+git submodule update --init
+
+
+alias waf="$PWD/modules/waf/waf-light"
+
+
+
+waf configure --board=navio2
+
+# To build arducopter. For a copter use the following command:
+
+waf copter
+
+
+#To transfer to raspberry pi
+
+rsync -avz ardupilot/build/navio2/bin/arducopter-quad pi@192.168.1.3:/home/pi/
