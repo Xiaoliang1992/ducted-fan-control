@@ -23,6 +23,6 @@ private:
 
     AP_HAL::UARTDriver *uart = nullptr;
     uint32_t last_reading_ms = 0;
-    char linebuf[10];
+    char linebuf[50];
     uint8_t linebuf_len = 0;
 };

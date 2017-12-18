@@ -17,7 +17,8 @@
 #include "AP_RangeFinder_LightWareSerial.h"
 #include <AP_SerialManager/AP_SerialManager.h>
 #include <ctype.h>
-
+#include <iostream>
+#include <stdio.h>
 extern const AP_HAL::HAL& hal;
 
 /* 
@@ -57,6 +58,40 @@ bool AP_RangeFinder_LightWareSerial::get_reading(uint16_t &reading_cm)
     float sum = 0;
     uint16_t count = 0;
     int16_t nbytes = uart->available();
+    uint16_t dist = 0;
+    //uint16_t sig = 0, strength = 0;;
+
+    unsigned char buf0[50];
+    //std::cout << "nbytes = " << nbytes << std::endl;
+
+    
+    for (count = 0; count < 45;count++) {
+        char c = uart->read();
+        buf0[count] = c;
+    }
+    uart->flush();
+    for (linebuf_len = 0; linebuf_len < 45; linebuf_len++) {
+        if (buf0[linebuf_len] == 0x59 && buf0[linebuf_len+1] == 0x59 && buf0[linebuf_len+9] == 0x59 && buf0[linebuf_len+10] == 0x59) {
+            unsigned char LOW_r = buf0[linebuf_len+2];
+            unsigned char HIGH_r = buf0[linebuf_len+3];
+            /*
+            unsigned char LOW_s = buf0[linebuf_len+4];
+            unsigned char HIGH_s = buf0[linebuf_len+5];
+            strength = (HIGH_s << 8) + LOW_s;
+            */
+            dist = (HIGH_r << 8) + LOW_r;
+            //sig = buf0[linebuf_len+6];
+            break;
+        }
+    }
+
+
+    reading_cm = dist/10;
+    //printf("reading_cm = %d with strength = %d with sig = %d\n",reading_cm, strength, sig);
+    for (linebuf_len = 0;linebuf_len < 50; linebuf_len++){
+        buf0[linebuf_len] = 0;
+    }
+   
     while (nbytes-- > 0) {
         char c = uart->read();
         if (c == '\r') {
@@ -72,14 +107,16 @@ bool AP_RangeFinder_LightWareSerial::get_reading(uint16_t &reading_cm)
             }
         }
     }
-
+    
+    uart->flush();
     // we need to write a byte to prompt another reading
-    uart->write('d');
-
+    //uart->write('d');
+    /*
     if (count == 0) {
         return false;
     }
     reading_cm = 100 * sum / count;
+    */
     return true;
 }
 
