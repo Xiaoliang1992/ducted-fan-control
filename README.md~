@@ -1,11 +1,12 @@
 # cool-control
 
-Linux版本以源码方式发布，编译需要使用cmake
-
+Linux版本编译方法
 ```
-mkdir build
-cd build
-cmake ..
-make
 
-cd ..
+编译初始化
+```
+./init
+
+执行编译
+```
+./compile
