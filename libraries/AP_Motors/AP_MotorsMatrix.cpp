@@ -20,7 +20,7 @@
  */
 #include <AP_HAL/AP_HAL.h>
 #include "AP_MotorsMatrix.h"
-
+#include <iostream>
 extern const AP_HAL::HAL& hal;
 
 // Init
@@ -86,6 +86,7 @@ void AP_MotorsMatrix::output_to_motors()
 {
     int8_t i;
     int16_t motor_out[AP_MOTORS_MAX_NUM_MOTORS];    // final pwm values sent to the motor
+    int16_t M40 = 1500 - 100 ,M50 = 1500 , M4 = 1500, M5 = 1500;
 
     switch (_spool_mode) {
         case SHUT_DOWN:
@@ -96,6 +97,8 @@ void AP_MotorsMatrix::output_to_motors()
                     motor_out[i] = get_pwm_output_min();
                 }
             }
+            M4 = M40;
+            M5 = M50;
             break;
         case SPIN_WHEN_ARMED:
             // sends output to motors when armed but not flying
@@ -104,6 +107,8 @@ void AP_MotorsMatrix::output_to_motors()
                     motor_out[i] = calc_spin_up_to_pwm();
                 }
             }
+            M4 = M40 + _thrust_rpyt_out[4]*300;//For front duct vane servo M5
+            M5 = M50 + _thrust_rpyt_out[5]*300;//For front duct vane servo M6
             break;
         case SPOOL_UP:
         case THROTTLE_UNLIMITED:
@@ -114,16 +119,29 @@ void AP_MotorsMatrix::output_to_motors()
                     motor_out[i] = calc_thrust_to_pwm(_thrust_rpyt_out[i]);
                 }
             }
+            M4 = M40 + _thrust_rpyt_out[4]*300;//For front duct vane servo M5
+            M5 = M50 + _thrust_rpyt_out[5]*300;//For front duct vane servo M6
             break;
     }
-
+    //------------------------------------------------------------------------------------------------//
     // send output to each motor
     hal.rcout->cork();
+    /*
     for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
         if (motor_enabled[i]) {
             rc_write(i, motor_out[i]);
         }
     }
+    */
+    // For the motors
+    rc_write(0, motor_out[0]);
+    rc_write(1, motor_out[1]);
+    rc_write(2, motor_out[2]);
+    rc_write(3, motor_out[3]);
+
+    // For the servos
+    rc_write(7, M4);
+    rc_write(8, M5);// PWM output channel (4 5 6)  is unavailable 5,6,7
     hal.rcout->push();
 }
 
@@ -195,7 +213,7 @@ void AP_MotorsMatrix::output_armed_stabilizing()
     // calculate the amount of yaw input that each motor can accept
     for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
         if (motor_enabled[i]) {
-            _thrust_rpyt_out[i] = roll_thrust * _roll_factor[i] + pitch_thrust * _pitch_factor[i];
+            _thrust_rpyt_out[i] = roll_thrust * _roll_factor[i] *0 + pitch_thrust * _pitch_factor[i];
             if (!is_zero(_yaw_factor[i])){
                 if (yaw_thrust * _yaw_factor[i] > 0.0f) {
                     unused_range = fabsf((1.0f - (throttle_thrust_best_rpy + _thrust_rpyt_out[i]))/_yaw_factor[i]);
@@ -274,6 +292,19 @@ void AP_MotorsMatrix::output_armed_stabilizing()
         }
     }
 
+    //------------------------------------------------------------------------------------------------//
+    //Edited by Xiaoliang Wang, to build a new actuation mix for [6kg] ducted fan aircraft
+    //Edited by Xiaoliang Wang, to build a new actuation mix for [30kg] ducted fan aircraft
+    _thrust_rpyt_out[0] = throttle_thrust_best_rpy + 0.5*pitch_thrust + 0.5*yaw_thrust;// For main duct M1
+    _thrust_rpyt_out[1] = throttle_thrust_best_rpy + 0.5*pitch_thrust - 0.5*yaw_thrust;// For main duct M2
+    _thrust_rpyt_out[2] = throttle_thrust_best_rpy - 0.5*pitch_thrust - 0.5*yaw_thrust;// For main duct M3
+    _thrust_rpyt_out[3] = throttle_thrust_best_rpy - 0.5*pitch_thrust + 0.5*yaw_thrust;// For main duct M4
+   
+    _thrust_rpyt_out[4] = -0.5*roll_thrust; //For front duct vane servo M5
+    _thrust_rpyt_out[5] = +0.5*roll_thrust;//For rear duct vane servo M6
+    // Yaw is controlled by servo which is calculated in line 119
+
+    //------------------------------------------------------------------------------------------------//
     // constrain all outputs to 0.0f to 1.0f
     // test code should be run with these lines commented out as they should not do anything
     for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
