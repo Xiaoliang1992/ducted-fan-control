@@ -86,7 +86,7 @@ void AP_MotorsMatrix::output_to_motors()
 {
     int8_t i;
     int16_t motor_out[AP_MOTORS_MAX_NUM_MOTORS];    // final pwm values sent to the motor
-    int16_t M40 = 1500 - 100 ,M50 = 1500 , M4 = 1500, M5 = 1500;
+    int16_t M40 = 1500 ,M50 = 1500 , M4 = 1500, M5 = 1500;
 
     switch (_spool_mode) {
         case SHUT_DOWN:
