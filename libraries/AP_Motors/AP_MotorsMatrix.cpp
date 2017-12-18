@@ -116,14 +116,25 @@ void AP_MotorsMatrix::output_to_motors()
             }
             break;
     }
-
+    //------------------------------------------------------------------------------------------------//
+    motor_out[4] = 1500 + _thrust_rpyt_out[4]*600;//For yaw serco M5/M6
+    motor_out[5] = 1500 + _thrust_rpyt_out[4]*600;//For yaw serco M5/M6
     // send output to each motor
     hal.rcout->cork();
+    /*
     for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
         if (motor_enabled[i]) {
             rc_write(i, motor_out[i]);
         }
     }
+    */
+    rc_write(0, motor_out[0]);
+    rc_write(1, motor_out[1]);
+    rc_write(2, motor_out[2]);
+    rc_write(3, motor_out[3]);
+    rc_write(7, motor_out[4]);// PWM output channel 5,6,7 is unavailable
+    rc_write(8, motor_out[5]);// PWM output channel 5,6,7 is unavailable
+    
     hal.rcout->push();
 }
 
@@ -274,6 +285,16 @@ void AP_MotorsMatrix::output_armed_stabilizing()
         }
     }
 
+    //------------------------------------------------------------------------------------------------//
+    //Edited by Xiaoliang Wang, to build a new actuation mix for [30kg] ducted fan aircraft
+    _thrust_rpyt_out[0] = throttle_thrust_best_rpy + 0.5*pitch_thrust;// For main duct M1
+    _thrust_rpyt_out[1] = throttle_thrust_best_rpy - 0.5*pitch_thrust;// For main duct M2
+    _thrust_rpyt_out[2] = throttle_thrust_best_rpy + 0.5*roll_thrust;// For auxilary duct M3
+    _thrust_rpyt_out[3] = throttle_thrust_best_rpy - 0.5*roll_thrust;// For auxilary duct M4
+    _thrust_rpyt_out[4] = 0.5*yaw_thrust;
+    // Yaw is controlled by servo which is calculated in line 119
+
+    //------------------------------------------------------------------------------------------------//
     // constrain all outputs to 0.0f to 1.0f
     // test code should be run with these lines commented out as they should not do anything
     for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
