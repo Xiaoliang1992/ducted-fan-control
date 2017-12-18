@@ -1,5 +1,5 @@
 #include "Copter.h"
-
+#include <iostream>
 /*
  * Init and run calls for loiter flight mode
  */
@@ -13,9 +13,10 @@ bool Copter::loiter_init(bool ignore_checks)
         return false;
     }
 #endif
-
-    if (position_ok() || ignore_checks) {
-
+    
+    //std::cout << "position_ok()  " << position_ok()  << std::endl;
+  //  if (position_ok() || ignore_checks) {
+    if (1) {
         // set target to current position
         wp_nav.init_loiter_target();
 
