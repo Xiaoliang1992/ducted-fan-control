@@ -1,4 +1,4 @@
-# cool-control
+# cool-control code for coolhigh tech
 
 编译前提安装
 ```
