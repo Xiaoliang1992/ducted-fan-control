@@ -11,7 +11,9 @@ export PATH=/opt/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/b
 Linux版本编译方法
 ```
 编译初始化
+```
 ./init
 
 执行编译
+```
 ./compile
