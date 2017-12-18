@@ -1,0 +1,11 @@
+# cool-control
+
+Linux版本以源码方式发布，编译需要使用cmake
+
+```
+mkdir build
+cd build
+cmake ..
+make
+
+cd ..
