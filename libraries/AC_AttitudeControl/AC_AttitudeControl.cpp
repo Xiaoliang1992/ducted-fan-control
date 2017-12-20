@@ -617,6 +617,7 @@ float AC_AttitudeControl::rate_target_to_motor_roll(float rate_target_rads)
     get_rate_roll_pid().cal_kr(0.5, 1.0, 2.0);
     get_rate_roll_pid().cal_adaptive_control();
     output = get_rate_roll_pid()._u;
+    
     // Constrain output
     return constrain_float(output, -1.0f, 1.0f);
 }
