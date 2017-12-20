@@ -609,6 +609,14 @@ float AC_AttitudeControl::rate_target_to_motor_roll(float rate_target_rads)
     // Compute output in range -1 ~ +1
     float output = get_rate_roll_pid().get_p() + integrator + get_rate_roll_pid().get_d();
 
+    // -- adaptive control
+    get_rate_roll_pid().set_state(current_rate_rads);
+    get_rate_roll_pid().set_ref(rate_target_rads);
+    get_rate_roll_pid().cal_reference_state(-0.1, 0.1);
+    get_rate_roll_pid().cal_kx(0.5, 1.0, 2.0);
+    get_rate_roll_pid().cal_kr(0.5, 1.0, 2.0);
+    get_rate_roll_pid().cal_adaptive_control();
+    output = get_rate_roll_pid()._u;
     // Constrain output
     return constrain_float(output, -1.0f, 1.0f);
 }

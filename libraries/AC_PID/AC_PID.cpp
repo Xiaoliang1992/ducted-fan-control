@@ -42,7 +42,14 @@ AC_PID::AC_PID(float initial_p, float initial_i, float initial_d, float initial_
     _dt(dt),
     _integrator(0.0f),
     _input(0.0f),
-    _derivative(0.0f)
+    _derivative(0.0f),
+    // for adaptive control   
+    _u(0.0f),
+    _kx(0.0f),
+    _kr(0.0f),
+    _state(0.0f),
+    _state_r(0.0f),
+    _ref(0.0f)
 {
     // load parameter values from eeprom
     AP_Param::setup_object_defaults(this, var_info);
@@ -59,6 +66,46 @@ AC_PID::AC_PID(float initial_p, float initial_i, float initial_d, float initial_
     memset(&_pid_info, 0, sizeof(_pid_info));
 }
 
+// cal_reference_state - cal reference state
+void AC_PID::cal_reference_state(float a, float b)
+{
+    float state_r_dot = a*_state_r + b*_ref;
+    _state_r = _state_r + state_r_dot;
+}
+
+// cal_kx - cal kx
+void AC_PID::cal_kx(float gama_x, float P, float B)
+{
+    float error = _state - _state_r;
+    float kx_dot = (-gama_x)*_state*error*P*B;
+    _kx = _kx + kx_dot;
+}
+
+// cal_kr - cal kr
+void AC_PID::cal_kr(float gama_r, float P, float B)
+{
+    float error = _state - _state_r;
+    float kr_dot = (-gama_r)*_ref*error*P*B;
+    _kr = _kr + kr_dot;
+}
+
+// cal_adaptive_control
+void AC_PID::cal_adaptive_control()
+{
+    _u = _kx*_state + _kr*_ref;
+}
+
+// set_state-
+void AC_PID::set_state(float state)
+{
+    _state = state;
+}
+
+// set_ref-
+void AC_PID::set_ref(float ref)
+{
+    _ref = ref;
+}
 // set_dt - set time step in seconds
 void AC_PID::set_dt(float dt)
 {

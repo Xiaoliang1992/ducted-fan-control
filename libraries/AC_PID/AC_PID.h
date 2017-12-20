@@ -17,6 +17,14 @@
 class AC_PID {
 public:
 
+    // -- for adaptive control
+    float           _u;
+    float           _kx;
+    float           _kr;
+    float           _state;
+    float           _state_r;
+    float           _ref;
+    
     // Constructor for PID
     AC_PID(float initial_p, float initial_i, float initial_d, float initial_imax, float initial_filt_hz, float dt);
 
@@ -39,7 +47,13 @@ public:
     float       get_p();
     float       get_i();
     float       get_d();
-
+    // For adaptive control
+    void        cal_reference_state(float a, float b);
+    void        cal_kx(float gama_x, float P, float B);
+    void        cal_kr(float gama_r, float P, float B);
+    void        cal_adaptive_control();
+    void        set_state(float state);
+    void        set_ref(float ref);
     // reset_I - reset the integrator
     void        reset_I();
 
@@ -100,6 +114,7 @@ protected:
     float           _integrator;            // integrator value
     float           _input;                 // last input for derivative
     float           _derivative;            // last derivative for low-pass filter
+    
 
     DataFlash_Class::PID_Info        _pid_info;
 };
